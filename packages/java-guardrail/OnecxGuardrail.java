@@ -22,7 +22,7 @@ import picocli.CommandLine.Spec;
 @Command(name = "onecx-guardrail", mixinStandardHelpOptions = true, version = OnecxGuardrail.VERSION,
     description = "Deterministic Clean Code and architecture checks with a ratchet (PMD metrics).")
 public class OnecxGuardrail implements Callable<Integer> {
-    static final String VERSION = "0.1.0";
+    static final String VERSION = "0.0.1";
 
     @Option(names = "--staged", description = "Inspect only staged files, compared against HEAD") boolean staged;
     @Option(names = "--baseline", description = "Ratchet baseline file") Path baseline;
