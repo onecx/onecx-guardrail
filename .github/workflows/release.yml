@@ -1,0 +1,107 @@
+name: Release
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Version bump
+        type: choice
+        options: [patch, minor, major]
+        default: patch
+      dry_run:
+        description: Build and test only, do not tag/publish
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: jbangdev/setup-jbang@main
+
+      - name: Compute next version
+        id: version
+        run: |
+          last=$(git tag --list 'v*' --sort=-v:refname | head -n1)
+          last=${last:-v0.0.0}
+          IFS=. read -r major minor patch <<< "${last#v}"
+          case "${{ inputs.bump }}" in
+            major) major=$((major+1)); minor=0; patch=0 ;;
+            minor) minor=$((minor+1)); patch=0 ;;
+            *) patch=$((patch+1)) ;;
+          esac
+          echo "version=$major.$minor.$patch" >> "$GITHUB_OUTPUT"
+
+      - name: Stamp version
+        run: |
+          v=${{ steps.version.outputs.version }}
+          npm --prefix packages/ts-guardrail version "$v" --no-git-tag-version --allow-same-version
+          sed -i -E "s/(String VERSION = \")[^\"]*(\")/\1$v\2/" packages/java-guardrail/OnecxGuardrail.java
+          grep -q "String VERSION = \"$v\"" packages/java-guardrail/OnecxGuardrail.java
+
+      - name: Test TypeScript CLI
+        working-directory: packages/ts-guardrail
+        run: |
+          npm ci
+          npm test
+          node dist/src/cli.js --strict --root ../..
+
+      - name: Test Java CLI
+        working-directory: packages/java-guardrail
+        run: |
+          ./check-embedded-config.sh
+          ./test.sh
+
+      - name: Prepare asset dir
+        run: mkdir -p release-assets
+
+      - name: Pack npm tarball
+        working-directory: packages/ts-guardrail
+        run: npm pack --pack-destination ../../release-assets
+
+      - name: Collect Java assets
+        run: cp packages/java-guardrail/*.java release-assets/
+
+      - name: Commit, tag and push
+        if: ${{ !inputs.dry_run }}
+        run: |
+          v=${{ steps.version.outputs.version }}
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add packages/ts-guardrail/package.json packages/ts-guardrail/package-lock.json packages/java-guardrail/OnecxGuardrail.java
+          git commit -m "chore(release): v$v"
+          git tag "v$v"
+          git push origin HEAD:${{ github.event.repository.default_branch }} "v$v"
+
+      - name: Publish to npm
+        if: ${{ !inputs.dry_run }}
+        working-directory: packages/ts-guardrail
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --access public --provenance
+
+      - name: Create GitHub release
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v=${{ steps.version.outputs.version }}
+          gh release create "v$v" release-assets/* --title "v$v" --generate-notes

@@ -1,0 +1,7 @@
+package demo.b;
+
+import demo.a.CycA;
+
+public class CycB {
+    CycA a;
+}

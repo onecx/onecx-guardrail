@@ -1,0 +1,44 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  ts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: packages/ts-guardrail/package-lock.json
+      - run: npm ci
+        working-directory: packages/ts-guardrail
+      - run: npm test
+        working-directory: packages/ts-guardrail
+      - name: Guardrail self-check
+        run: node dist/src/cli.js --strict --root ../..
+        working-directory: packages/ts-guardrail
+
+  java:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - uses: jbangdev/setup-jbang@main
+      - run: ./check-embedded-config.sh
+        working-directory: packages/java-guardrail
+      - run: ./test.sh
+        working-directory: packages/java-guardrail

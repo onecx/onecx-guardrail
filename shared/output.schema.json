@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "onecx-guardrail --format json result",
+  "type": "object",
+  "required": ["tool", "version", "runtime", "passed", "violations"],
+  "additionalProperties": false,
+  "properties": {
+    "tool": { "const": "onecx-guardrail" },
+    "version": { "type": "string" },
+    "runtime": { "enum": ["ts", "java"] },
+    "passed": { "type": "boolean" },
+    "violations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["rule", "target", "before", "after", "limit", "principle", "why", "fix"],
+        "additionalProperties": false,
+        "properties": {
+          "rule": { "$ref": "#/$defs/ruleCode" },
+          "target": { "type": "string" },
+          "before": { "type": ["number", "null"] },
+          "after": { "type": ["number", "null"] },
+          "limit": { "type": ["number", "null"] },
+          "principle": { "type": "string" },
+          "why": { "type": "string" },
+          "fix": { "type": "string" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "ruleCode": {
+      "enum": [
+        "FUNCTION_TOO_LONG", "FILE_TOO_LONG", "CYCLOMATIC_COMPLEXITY", "COGNITIVE_COMPLEXITY",
+        "NESTING_TOO_DEEP", "SWITCH_TOO_MANY_CASES", "TOO_MANY_PARAMETERS", "BOOLEAN_FLAG_PARAMETER",
+        "FAN_OUT_TOO_HIGH", "CIRCULAR_DEPENDENCY", "DUPLICATE_CODE", "GOD_CLASS", "FORBIDDEN_SUPPRESSION"
+      ]
+    }
+  }
+}

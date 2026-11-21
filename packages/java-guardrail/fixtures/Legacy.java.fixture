@@ -1,0 +1,7 @@
+package demo.legacy;
+
+public class Legacy {
+    public int run(int a, int b, int c, int d) {
+        return a + b + c + d;
+    }
+}

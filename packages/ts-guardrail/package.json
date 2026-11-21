@@ -1,0 +1,41 @@
+{
+  "name": "@onecx/guardrail",
+  "version": "0.1.0",
+  "description": "Deterministic Clean Code and architecture guardrail for TypeScript (ratchet-based)",
+  "license": "Apache-2.0",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "onecx-guardrail": "dist/src/cli.js",
+    "guardrail": "dist/src/cli.js"
+  },
+  "files": [
+    "dist/src",
+    "dist/default-config.json"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node scripts/embed-config.js",
+    "prepare": "npm run build",
+    "prepack": "npm run build",
+    "test": "npm run build && node scripts/run-tests.js",
+    "self-check": "node dist/src/cli.js --strict --root ."
+  },
+  "dependencies": {
+    "@typescript-eslint/parser": "8.73.0",
+    "eslint": "9.39.5",
+    "eslint-plugin-sonarjs": "4.2.2",
+    "jscpd": "4.3.0",
+    "madge": "8.0.0",
+    "parse-diff": "0.12.0",
+    "picomatch": "4.0.7",
+    "typescript": "5.9.3"
+  },
+  "devDependencies": {
+    "@types/madge": "5.0.3",
+    "@types/node": "20.19.43",
+    "@types/picomatch": "4.0.3",
+    "ajv": "8.17.1"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "catalogs": {},
+  "aliases": {
+    "guardrail": {
+      "script-ref": "https://github.com/onecx/onecx-guardrail/releases/latest/download/OnecxGuardrail.java",
+      "description": "Deterministic Clean Code & architecture guardrail for Java (PMD based)"
+    }
+  }
+}

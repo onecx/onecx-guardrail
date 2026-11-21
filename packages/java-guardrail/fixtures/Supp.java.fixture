@@ -1,0 +1,6 @@
+package demo.supp;
+
+public class Supp {
+    @SuppressWarnings("unused")
+    int x;
+}

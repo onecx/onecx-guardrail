@@ -1,0 +1,31 @@
+package demo.shapes;
+
+import java.util.List;
+
+@Mapper(componentModel = "cdi")
+public interface Shapes {
+    @Mapping(target = "id", ignore = true)
+    String map(List<String> in);
+
+    default int one() {
+        return 1;
+    }
+}
+
+record Point(int x, int y) {
+    int sum() {
+        return x + y;
+    }
+}
+
+enum Color {
+    RED, GREEN;
+
+    int code() {
+        return ordinal();
+    }
+}
+
+@interface Marker {
+    String value() default "";
+}

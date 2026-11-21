@@ -1,0 +1,29 @@
+{
+  "$schema": "./config.schema.json",
+  "version": 1,
+  "thresholds": {
+    "maxFunctionLines": 25,
+    "maxTestFunctionLines": 50,
+    "maxFileLines": 250,
+    "maxCyclomatic": 10,
+    "maxCognitive": 15,
+    "maxNesting": 3,
+    "maxSwitchCases": 5,
+    "maxParameters": 3,
+    "maxConstructorParameters": 6,
+    "maxFanOut": 15,
+    "jscpdMinLines": 15,
+    "jscpdMinTokens": 120
+  },
+  "suppressionPatterns": [
+    "NOPMD",
+    "@SuppressWarnings",
+    "eslint-disable",
+    "@ts-ignore",
+    "@ts-expect-error",
+    "jscpd:ignore"
+  ],
+  "include": [],
+  "exclude": ["**/node_modules/**", "**/dist/**", "**/target/**", "**/build/**", "**/generated/**"],
+  "testFilePatterns": ["*.spec.ts", "*.test.ts", "*Test.java", "*Tests.java", "*IT.java"]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "onecx-guardrail-root",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Root manifest so `npx github:onecx/onecx-guardrail#v<version>` runs the TypeScript guardrail",
+  "license": "Apache-2.0",
+  "bin": {
+    "onecx-guardrail": "bin/onecx-guardrail.js",
+    "guardrail": "bin/onecx-guardrail.js"
+  },
+  "scripts": {
+    "prepare": "npm --prefix packages/ts-guardrail ci && npm --prefix packages/ts-guardrail run build"
+  }
+}

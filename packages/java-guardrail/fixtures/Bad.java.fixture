@@ -1,0 +1,13 @@
+package demo.bad;
+
+public class Bad {
+    public int many(int a, int b, int c, int d) {
+        return a + b + c + d;
+    }
+
+    public void flag(boolean on) {
+        if (on) {
+            System.out.println("on");
+        }
+    }
+}
