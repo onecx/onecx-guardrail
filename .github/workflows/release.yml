@@ -93,11 +93,6 @@ jobs:
           git tag "v$v"
           git push origin HEAD:${{ github.event.repository.default_branch }} "v$v"
 
-      - name: Publish to npm (trusted publishing, OIDC)
-        if: ${{ !inputs.dry_run }}
-        working-directory: packages/ts-guardrail
-        run: npm publish --access public
-
       - name: Create GitHub release
         if: ${{ !inputs.dry_run }}
         env:
@@ -105,3 +100,14 @@ jobs:
         run: |
           v=${{ steps.version.outputs.version }}
           gh release create "v$v" release-assets/* --title "v$v" --generate-notes
+
+      - name: Publish to npm (trusted publishing, OIDC)
+        id: npm
+        if: ${{ !inputs.dry_run }}
+        continue-on-error: true
+        working-directory: packages/ts-guardrail
+        run: npm publish --access public
+
+      - name: Report npm publish result
+        if: ${{ !inputs.dry_run && steps.npm.outcome == 'failure' }}
+        run: echo "::warning::npm publish failed (is the trusted publisher for @onecx/guardrail configured on npmjs.com?). GitHub release was created; re-run after fixing."
