@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       bump:
-        description: Version bump
+        description: Version bump (ignored when "tag" is set)
         type: choice
         options: [patch, minor, major]
         default: patch
@@ -11,6 +11,10 @@ on:
         description: Build and test only, do not tag/publish
         type: boolean
         default: false
+      tag:
+        description: 'Existing tag (e.g. v0.0.1) to publish to npm only; skips tagging and the GitHub release'
+        type: string
+        default: ''
 
 permissions:
   contents: write
@@ -22,7 +26,10 @@ concurrency:
 
 jobs:
   release:
+    if: ${{ inputs.tag == '' }}
     runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -30,9 +37,6 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-          registry-url: https://registry.npmjs.org
-      - name: Update npm (trusted publishing needs npm >= 11.5.1)
-        run: npm install -g npm@latest
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -72,15 +76,14 @@ jobs:
           ./check-embedded-config.sh
           ./test.sh
 
-      - name: Prepare asset dir
-        run: mkdir -p release-assets
-
-      - name: Pack npm tarball
-        working-directory: packages/ts-guardrail
-        run: npm pack --pack-destination ../../release-assets
-
-      - name: Collect Java assets
-        run: cp packages/java-guardrail/*.java release-assets/
+      - name: Build release assets
+        run: |
+          v=${{ steps.version.outputs.version }}
+          mkdir -p release-assets
+          npm --prefix packages/ts-guardrail pack --pack-destination "$PWD/release-assets"
+          cp packages/java-guardrail/*.java release-assets/
+          (cd packages/java-guardrail && zip -q "../../release-assets/onecx-guardrail-java-$v.zip" *.java)
+          (cd release-assets && sha256sum * > SHA256SUMS)
 
       - name: Commit, tag and push
         if: ${{ !inputs.dry_run }}
@@ -93,7 +96,7 @@ jobs:
           git tag "v$v"
           git push origin HEAD:${{ github.event.repository.default_branch }} "v$v"
 
-      - name: Create GitHub release
+      - name: Create GitHub release (npm tarball + Java sources)
         if: ${{ !inputs.dry_run }}
         env:
           GH_TOKEN: ${{ github.token }}
@@ -101,13 +104,26 @@ jobs:
           v=${{ steps.version.outputs.version }}
           gh release create "v$v" release-assets/* --title "v$v" --generate-notes
 
+  npm:
+    # Independent of the GitHub release: a failure here (e.g. trusted publisher not yet
+    # configured on npmjs.com) must not fail the run. Re-run with the "tag" input.
+    needs: release
+    if: ${{ always() && !inputs.dry_run && (inputs.tag != '' || needs.release.result == 'success') }}
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag != '' && inputs.tag || format('v{0}', needs.release.outputs.version) }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - name: Update npm (trusted publishing needs npm >= 11.5.1)
+        run: npm install -g npm@latest
+      - name: Install and build
+        working-directory: packages/ts-guardrail
+        run: npm ci
       - name: Publish to npm (trusted publishing, OIDC)
-        id: npm
-        if: ${{ !inputs.dry_run }}
-        continue-on-error: true
         working-directory: packages/ts-guardrail
         run: npm publish --access public
-
-      - name: Report npm publish result
-        if: ${{ !inputs.dry_run && steps.npm.outcome == 'failure' }}
-        run: echo "::warning::npm publish failed (is the trusted publisher for @onecx/guardrail configured on npmjs.com?). GitHub release was created; re-run after fixing."
