@@ -99,7 +99,7 @@ Before every commit run `npx --prefer-offline -y @onecx/guardrail@<version> --st
 
 ## Releasing
 
-Run the **Release** workflow (`bump`: patch/minor/major). It tests both CLIs, stamps the version, tags `v<version>`, publishes `@onecx/guardrail` to npm (secret `NPM_TOKEN`) and creates a GitHub release with the npm tarball and all Java sources (`*.java`) as assets. `dry_run` builds and tests only.
+Run the **Release** workflow (`bump`: patch/minor/major). It tests both CLIs, stamps the version, tags `v<version>`, publishes `@onecx/guardrail` to npm via npm trusted publishing (OIDC, no token; the trusted publisher for `@onecx/guardrail` must point at repo `onecx/onecx-guardrail`, workflow `release.yml`) and creates a GitHub release with the npm tarball and all Java sources (`*.java`) as assets. `dry_run` builds and tests only.
 
 ## Development
 

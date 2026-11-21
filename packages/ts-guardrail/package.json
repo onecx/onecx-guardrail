@@ -3,6 +3,12 @@
   "version": "0.0.1",
   "description": "Deterministic Clean Code and architecture guardrail for TypeScript (ratchet-based)",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/onecx/onecx-guardrail.git",
+    "directory": "packages/ts-guardrail"
+  },
+  "homepage": "https://github.com/onecx/onecx-guardrail#readme",
   "type": "commonjs",
   "engines": {
     "node": ">=20"
