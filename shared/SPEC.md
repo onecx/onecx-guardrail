@@ -31,7 +31,7 @@ Metric key = `<rule>|<relative file>|<symbol>` (symbol = function/method name wi
    - key present before: a violation is reported iff `after > limit` **and** `after > before`.
    So legacy debt (already over the limit) passes when unchanged or improved, fails when it grows (`delta > 0`), and anything that crosses the limit fails. Growth that stays within the limit is not a violation.
 3. **Baseline mode** (`--baseline` given or default file exists, not `--strict`): `before` comes from the baseline instead of `HEAD`; keys missing in the baseline are new. Files not in the baseline are new files.
-4. **Package/module cycles**: set of strongly connected components (size > 1, or self-loop) of the import graph. A cycle is new if its sorted member set is not present in `HEAD`/baseline. Only new cycles fail.
+4. **Package/module cycles**: set of strongly connected components (size > 1, or self-loop) of the import graph. The graph is built from non-test files only (see `testFilePatterns`): a test file neither adds an edge nor a vertex. A cycle is new if its sorted member set is not present in `HEAD`/baseline. Only new cycles fail.
 5. **Duplicates (TS only)**: a jscpd clone fails if at least one of its two sides is in an inspected file and it was not already in `HEAD`/baseline (key: both fragment locations normalised by file + content hash of the fragment).
 6. **Suppressions**: only added lines (`+` lines in `git diff --cached -U0`; in non-staged mode: `git diff HEAD -U0`) are scanned. Every match of a `suppressionPatterns` entry is `FORBIDDEN_SUPPRESSION`. Not subject to ratchet or baseline. `--strict` additionally scans whole files.
 
@@ -108,6 +108,6 @@ Re-run: <the exact command that was run>
 
 - **Size metric (Java):** function and class size are PMD NCSS statements (lone braces and blank/comment lines are not counted), so Java values read lower than the TypeScript non-blank, non-comment line count.
 - **Fan-out (Java):** PMD `ClassFanOutComplexity` also counts inferred types, so a class with 15 imports can score higher. TypeScript counts non-type import declarations.
-- **Cycles:** TypeScript treats `import { T }` of a type as a runtime edge unless written `import type`. Java ignores test sources for package cycles.
+- **Cycles:** TypeScript treats `import { T }` of a type as a runtime edge unless written `import type`. Both runtimes ignore test files for cycles.
 - **Renames (TypeScript):** renamed files carry their history (`git diff -M`) so legacy debt is not re-reported as new.
 - **Unparseable files** are skipped with a stderr notice rather than failing the run.

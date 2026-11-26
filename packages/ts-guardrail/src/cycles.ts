@@ -1,10 +1,13 @@
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import madge from 'madge';
+import { isTestFile } from './files';
+import { GuardrailConfig } from './types';
 
 export interface GraphInput {
   root: string;
   files: string[];
+  config: GuardrailConfig;
 }
 
 /** Union-find over madge's elementary cycles: cycles sharing a file belong to one component. */
@@ -36,17 +39,21 @@ class Components {
   }
 }
 
-/** Circular dependency groups (sorted member files) via `madge --circular`; type-only imports are ignored. */
+/**
+ * Circular dependency groups (sorted member files) via `madge --circular`; type-only imports are ignored.
+ * Only production files form the graph: a test file can neither create nor join a cycle.
+ */
 export async function findCycles(input: GraphInput): Promise<string[][]> {
-  if (input.files.length === 0) return [];
+  const files = input.files.filter((file) => !isTestFile(file, input.config));
+  if (files.length === 0) return [];
   const tsConfig = path.join(input.root, 'tsconfig.json');
-  const result = await madge(input.files.map((file) => path.join(input.root, file)), {
+  const result = await madge(files.map((file) => path.join(input.root, file)), {
     baseDir: input.root,
     fileExtensions: ['ts', 'tsx', 'js', 'jsx', 'mts', 'cts', 'mjs', 'cjs'],
     tsConfig: fs.existsSync(tsConfig) ? tsConfig : undefined,
     detectiveOptions: { ts: { skipTypeImports: true }, tsx: { skipTypeImports: true } },
   });
-  const known = new Set(input.files);
+  const known = new Set(files);
   const components = new Components();
   for (const cycle of result.circular()) {
     if (cycle.every((file) => known.has(file))) components.join(cycle);

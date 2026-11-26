@@ -41,7 +41,10 @@ record Config(Thresholds thresholds, List<String> suppressionPatterns, List<Stri
   ],
   "include": [],
   "exclude": ["**/node_modules/**", "**/dist/**", "**/target/**", "**/build/**", "**/generated/**"],
-  "testFilePatterns": ["*.spec.ts", "*.test.ts", "*Test.java", "*Tests.java", "*IT.java"]
+  "testFilePatterns": [
+    "*.spec.ts", "*.test.ts", "*Test.java", "*Tests.java", "*IT.java",
+    "**/src/test/**", "**/__tests__/**", "**/e2e/**", "**/test/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"
+  ]
 }
 """;
 

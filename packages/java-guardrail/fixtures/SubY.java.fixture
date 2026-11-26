@@ -1,0 +1,7 @@
+package demo.p.sub;
+
+import demo.p.PkgZ;
+
+public class SubY {
+    PkgZ z;
+}

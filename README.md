@@ -61,6 +61,15 @@ Optional. Thresholds merge key-wise over the defaults; arrays replace.
 { "version": 1, "thresholds": { "maxFanOut": 20 }, "exclude": ["**/generated/**"] }
 ```
 
+### Test files
+
+A file is a test file if its name or path matches one of `testFilePatterns`. The defaults:
+
+- names: `*.spec.ts`, `*.test.ts`, `*Test.java`, `*Tests.java`, `*IT.java`
+- folders, at any depth: `**/src/test/**` (Maven/Gradle, in every module), `**/__tests__/**`, `**/e2e/**`, and JS/TS files under `**/test/**`
+
+So builders, fixtures, fakes and e2e support files in a test folder count as tests too. Test files get `maxTestFunctionLines` (50) instead of `maxFunctionLines` (25). All other rules still apply to them. They are left out of the cycle check: a test file can neither create nor join a `CIRCULAR_DEPENDENCY`.
+
 ## Rules
 
 | Code | Default limit | Principle |

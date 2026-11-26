@@ -29,7 +29,7 @@ export function metricViolations(ctx: CheckContext): Violation[] {
 
 export async function cycleViolations(ctx: CheckContext): Promise<Violation[]> {
   const inspected = new Set(ctx.inspected);
-  const cycles = (await findCycles({ root: ctx.root, files: ctx.all })).filter((members) =>
+  const cycles = (await findCycles({ root: ctx.root, files: ctx.all, config: ctx.config })).filter((members) =>
     members.some((file) => inspected.has(file)),
   );
   if (cycles.length === 0) return [];

@@ -45,7 +45,7 @@ function chooseBefore(options: RunOptions, workspace: Workspace): BeforeSource {
 async function initBaseline(options: RunOptions, workspace: Workspace): Promise<RunResult> {
   const { root, config, all } = workspace;
   const metrics = all.flatMap((file) => analyzeFile(workspace, file));
-  const cycles = (await findCycles({ root, files: all })).map(cycleKey);
+  const cycles = (await findCycles({ root, files: all, config })).map(cycleKey);
   const clones = (await findClones({ root, files: all, config })).map((clone) => clone.key);
   const target = baselinePath(options, root);
   writeBaseline(target, buildBaseline({ metrics, cycles, clones }));

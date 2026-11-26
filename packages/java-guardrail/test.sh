@@ -56,6 +56,25 @@ echo "# interfaces, records, enums, annotation types"
 newrepo; put Shapes src/Shapes.java; git add .
 check "shapes pass" "$(run --strict)" 0
 
+echo "# test helpers under src/test"
+pkgs() { put PkgZ src/main/java/demo/p/PkgZ.java; put SubX src/main/java/demo/p/sub/SubX.java; put SubY src/main/java/demo/p/sub/SubY.java; }
+newrepo; pkgs; put PkgHelper src/test/java/demo/p/PkgHelper.java; git add .
+check "test helper closes no cycle" "$(run --strict)" 0
+newrepo; pkgs; put PkgHelper src/main/java/demo/p/PkgHelper.java; git add .
+check "production cycle fails" "$(run --strict)" 1
+grep -q "demo.p -> demo.p.sub -> demo.p" /tmp/gr-err.txt && echo "ok   production cycle output" || { echo "FAIL production cycle output"; fail=1; }
+newrepo; put CycA src/test/java/demo/cyclefixture/a/CycA.java; put CycB src/test/java/demo/cyclefixture/b/CycB.java; git add .
+check "cycle fixture under src/test passes" "$(run --strict)" 0
+check "init-baseline with cycle fixture" "$(run --init-baseline)" 0
+grep -q '"cycles": \[\]' .guardrail-baseline.json && echo "ok   baseline has no test cycles" || { echo "FAIL baseline has no test cycles"; fail=1; }
+newrepo; put Builders src/test/java/demo/x/Builders.java; put Builders module-a/src/test/java/demo/x/Builders.java
+touch module-a/pom.xml; git add .
+check "long test helper method passes" "$(run --strict)" 0
+check "long test helper method passes staged" "$(run --staged)" 0
+newrepo; put Builders src/main/java/demo/test/Builders.java; git add .
+check "long production method fails" "$(run --strict)" 1
+grep -q "FUNCTION_TOO_LONG" /tmp/gr-err.txt && echo "ok   long production method output" || { echo "FAIL long production method output"; fail=1; }
+
 echo "# json"
 newrepo; put Bad src/Bad.java; git add .
 check "json exit" "$(run --staged --format json)" 1
