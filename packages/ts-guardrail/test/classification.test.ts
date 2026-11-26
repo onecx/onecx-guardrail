@@ -61,16 +61,16 @@ test('a cycle closed by a test file is not reported, the same cycle in productio
 
 test('a deliberate cycle fixture inside a test folder is not reported', () => {
   const repo = createRepo();
-  write(repo, 'test/cyclefixture/alpha.ts', MUTUAL('./beta', 'alpha', 'beta'));
-  write(repo, 'test/cyclefixture/beta.ts', MUTUAL('./alpha', 'beta', 'alpha'));
+  write(repo, 'test/cycles/alpha.ts', MUTUAL('./beta', 'alpha', 'beta'));
+  write(repo, 'test/cycles/beta.ts', MUTUAL('./alpha', 'beta', 'alpha'));
   assert.equal(runCli(repo, ['--strict']).status, 0);
 });
 
 test('--staged and the baseline classify test folders the same way', () => {
   const repo = createRepo();
   write(repo, 'e2e/support.ts', longFunction('setUp', 40));
-  write(repo, 'test/cyclefixture/alpha.ts', MUTUAL('./beta', 'alpha', 'beta'));
-  write(repo, 'test/cyclefixture/beta.ts', MUTUAL('./alpha', 'beta', 'alpha'));
+  write(repo, 'test/cycles/alpha.ts', MUTUAL('./beta', 'alpha', 'beta'));
+  write(repo, 'test/cycles/beta.ts', MUTUAL('./alpha', 'beta', 'alpha'));
   git(repo, 'add', '-A');
   assert.equal(runCli(repo, ['--staged']).status, 0);
   assert.equal(runCli(repo, ['--init-baseline']).status, 0);

@@ -66,9 +66,9 @@ Optional. Thresholds merge key-wise over the defaults; arrays replace.
 A file is a test file if its name or path matches one of `testFilePatterns`. The defaults:
 
 - names: `*.spec.ts`, `*.test.ts`, `*Test.java`, `*Tests.java`, `*IT.java`
-- folders, at any depth: `**/src/test/**` (Maven/Gradle, in every module), `**/__tests__/**`, `**/e2e/**`, and JS/TS files under `**/test/**`
+- folders, at any depth: `**/src/test/**` (Maven/Gradle, in every module), `**/__tests__/**`, `**/e2e/**` (all languages), and JS/TS files under `**/test/**`
 
-So builders, fixtures, fakes and e2e support files in a test folder count as tests too. Test files get `maxTestFunctionLines` (50) instead of `maxFunctionLines` (25). All other rules still apply to them. They are left out of the cycle check: a test file can neither create nor join a `CIRCULAR_DEPENDENCY`.
+Each runtime only looks at its own language files (`.java`, or JS/TS), so a Java package named `test` under `src/main/java` stays production code. So builders, fixtures, fakes and e2e support files in a test folder count as tests too. Test files get `maxTestFunctionLines` (50) instead of `maxFunctionLines` (25). All other rules still apply to them. They are left out of the cycle check: a test file can neither create nor join a `CIRCULAR_DEPENDENCY`. An explicit `testFilePatterns` replaces this list.
 
 ## Rules
 
