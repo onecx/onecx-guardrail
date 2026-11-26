@@ -1,0 +1,7 @@
+package demo.p;
+
+import demo.p.sub.SubX;
+
+public class PkgHelper {
+    SubX x;
+}

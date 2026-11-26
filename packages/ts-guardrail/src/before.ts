@@ -83,7 +83,7 @@ export class HeadBefore implements BeforeSource {
   }
 
   async cycleKeys(): Promise<Set<string>> {
-    const cycles = await findCycles({ root: this.directory(), files: this.files() });
+    const cycles = await findCycles({ root: this.directory(), files: this.files(), config: this.ctx.config });
     return new Set(cycles.map(cycleKey));
   }
 

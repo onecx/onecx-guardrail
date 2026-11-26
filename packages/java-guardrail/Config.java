@@ -1,4 +1,5 @@
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -41,14 +42,24 @@ record Config(Thresholds thresholds, List<String> suppressionPatterns, List<Stri
   ],
   "include": [],
   "exclude": ["**/node_modules/**", "**/dist/**", "**/target/**", "**/build/**", "**/generated/**"],
-  "testFilePatterns": ["*.spec.ts", "*.test.ts", "*Test.java", "*Tests.java", "*IT.java"]
+  "testFilePatterns": [
+    "*.spec.ts", "*.test.ts", "*Test.java", "*Tests.java", "*IT.java",
+    "**/src/test/**", "**/__tests__/**", "**/e2e/**", "**/test/**/*.{ts,tsx,mts,cts,js,jsx,mjs,cjs}"
+  ]
 }
 """;
 
+    /** Thresholds merge key-wise; list options replace the defaults. */
     static Config load(Optional<Path> file) throws IOException {
-        JsonNode merged = Json.MAPPER.readTree(DEFAULT_CONFIG);
+        ObjectNode merged = (ObjectNode) Json.MAPPER.readTree(DEFAULT_CONFIG);
         if (file.isPresent()) {
-            merged = Json.MAPPER.readerForUpdating(merged).readValue(Files.readString(file.get()));
+            Json.MAPPER.readTree(Files.readString(file.get())).fields().forEachRemaining(e -> {
+                if (e.getValue() instanceof ObjectNode o && merged.get(e.getKey()) instanceof ObjectNode base) {
+                    base.setAll(o);
+                } else {
+                    merged.set(e.getKey(), e.getValue());
+                }
+            });
         }
         return Json.MAPPER.treeToValue(merged, Config.class);
     }

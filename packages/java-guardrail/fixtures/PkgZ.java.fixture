@@ -1,0 +1,5 @@
+package demo.p;
+
+public class PkgZ {
+    int z;
+}
